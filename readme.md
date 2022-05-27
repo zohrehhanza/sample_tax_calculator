@@ -1,4 +1,4 @@
-
+![App Screenshot](/screenshot.png)
 # Intro
 
 The goal is to get the data from the API server, do the calculations and show users their taxes.
