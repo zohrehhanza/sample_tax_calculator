@@ -11,12 +11,21 @@ const taxCalculatorServices = new TaxCalculatorServices()
 
   export const TaxCalculator = () => {
 
+    //here we can cache the states with the first calculate_tax, that reduce the latency and also we hit the server less as this information 
+    // not changing frequently, so we can cache in our state, also if we want to make it more consistent, in this case based on our data
+    // we can put them in local staorage as well.
+
+    const[tax_info, setTaxinfo] = useState('')
+    const[tax_year, setTaxyear] = useState({})
+
     // initialize the states for the final object (tax calculated) to render in a table
     // initial a state for having teh total paid tax and average rate
     // initial state for error we get sometime from one of the Api's , it's supposed to give information about the error.
+
     const[taxdisp, setTaxsalary] = useState('')
     const[totalval, setTotalval] = useState('')
     const[err_res , setError] = useState('')
+    console.log(tax_year, '***here is the info for the years')
 
 
     const calculate_tax = (tax_br, salary) =>{
@@ -52,7 +61,7 @@ const taxCalculatorServices = new TaxCalculatorServices()
           rate = rate+item.rate
           total_tax = (total_tax+parseFloat(owned_amount)).toFixed(2)
           setTotalval({avg_rate:rate/(parseInt(idx)+1) , total_tax:total_tax})
-          console.log(final_lst, 'here is that')
+
           break
         }
 
@@ -68,16 +77,22 @@ const taxCalculatorServices = new TaxCalculatorServices()
       const salary = document.getElementById('salary').value
 
       if (year !=='Latest'){
+        if (tax_year[year]!== undefined){calculate_tax(tax_year[year], salary)}
+        else{ 
+
 
         return taxCalculatorServices.get_tax_brackets_bytime(year)
-      .then(res=> calculate_tax(res.data.tax_brackets, salary)).catch(e=>{setTaxsalary('');setError(e.message +', please wait for 10 sec and try again')})
+      .then(res=> {setTaxyear(tax_year => ({...tax_year, [year]:res.data.tax_brackets}));calculate_tax(res.data.tax_brackets, salary)}).catch(e=>{setTaxsalary('');setError(e.message +', please wait for 10 sec and try again')})
 
-      }
+      }}
       
-      else{
+      else{ 
+        if (tax_info.length>0){calculate_tax(tax_info, salary)}
+        else{
+        
 
       return taxCalculatorServices.get_tax_bracket()
-      .then(res=> calculate_tax(res.data.tax_brackets, salary)).catch(e=>{console.log(e)})
+      .then(res=> {setTaxinfo(res.data.tax_brackets);calculate_tax(res.data.tax_brackets, salary)}).catch(e=>{console.log(e)})}
 
 }
 
